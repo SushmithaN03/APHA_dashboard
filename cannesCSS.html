@@ -1,0 +1,354 @@
+{% load static %}
+<style>
+    .body-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+        margin-top: 85px;
+        width: 100%;
+        font-family: 'Roboto' !important;
+        user-select:none;
+    }
+    .header-div {
+        background-color: #A8944D;
+        color: #fff;
+        padding: 13px 0;
+        text-align: center;
+        width: 95%;
+        border-radius: 10px;
+        margin: 0 auto;
+    }
+    .header-div h1 {
+        font-size: 24px;
+        color: #000000;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .filter-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        background: black;
+        padding:0px 20px 20px 20px;
+        border: 1px solid #A8944D;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        margin: 0 auto;
+    }
+    .filter-container-1 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        width: 100%;
+    }
+    .filter-container-2 {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dropdown {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 14px;
+        margin: 0 auto;
+    }
+
+    .dropdown-select {
+        padding: 8px 16px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+        cursor: pointer;
+        width: 100%;
+        max-width: 250px;
+        margin-top:20px;
+        margin-bottom:0px !important;
+    }
+    .date-filter {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .date-filter input {
+        border: 1px solid #A8944D;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 150px;
+    }
+
+    .filter-buttons {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+    }
+    .active {
+        background: #A8944D !important;
+        color: black !important;
+    }
+    /* Buttons general styling */
+    .filter-btn {
+        padding: 8px 16px;
+        background: transparent;
+        color: #ffffff;
+        border: 1px solid #A8944D;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .filter-btn:hover {
+        background: #A8944D;
+        color: black;
+    }
+
+    .arrow-btn {
+        font-size: 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #A8944D;
+        padding: 5px;
+    }
+
+    /* Scrollable container */
+    .scroll-container-wrapper {
+        position: relative;
+        max-width: 400px;
+        height: 60px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .days {
+        display: flex;
+        gap: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .day-btn {
+        padding: 8px 16px;
+        background: transparent;
+        border: 1px solid #A8944D;
+        color: #ffffff;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .day-btn:hover {
+        background: #A8944D;
+    }
+
+
+    /* Tooltip styling */
+    .day-btn[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: auto;
+        bottom: calc(100% + 5px);
+        /* Tooltip appears above the button */
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 5px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+        white-space: nowrap;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    /* Tooltip arrow styling */
+    .day-btn[data-tooltip]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        /* Align arrow with the tooltip */
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent #333 transparent;
+        z-index: 10;
+    }
+    /* Style for the Scroll to Top button */
+    .scroll-to-top-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        height: 50px;
+        width: 50px;
+        background-color: black;
+        padding: 5px;
+        color: #ae943f;
+        border: 2px solid #ae943f; /* Increase padding to make the button larger */
+        border-radius: 50%; /* Fully round button */
+        font-size: 24px; /* Adjust font size for a larger button */
+        cursor: pointer;
+        display: none; /* Hidden by default */
+        z-index: 1000;
+    }
+
+    .scroll-to-top-btn:hover {
+        color: #fff;
+        border: 2px solid #fff;
+    }
+
+    @keyframes spin {
+        to {
+        transform: rotate(360deg);
+        }
+    }
+
+    .loader {
+        width: 40px;
+        height: 40px;
+        border: 10px solid transparent;
+        border-top-color: #ae943f;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    table a {
+        color: #A8944D; /* Link color */
+        text-decoration: none; /* Remove underline from links */
+        padding: 5px 10px; /* Padding for links */
+        margin: 0 3px; /* Margin between links */
+        border-radius: 3px; /* Rounded corners for links */
+        background-color: #333; /* Background color for links */
+    }
+
+    table a:hover {
+        background-color: #555; /* Hover background color */
+    }
+    table th {
+        text-align: center;
+        background-color: #331f1e !important;
+        color: #A8944D;
+        font-size: 12px;
+        font-family: Roboto;
+        font-weight: 700;
+        line-height: 18px;
+        position: sticky;
+        top: -1px;
+        z-index: 1; 
+    }
+    table tr {
+        background-color: inherit !important;
+    }
+    table td {
+        color: #A8944D;
+        background-color: inherit !important;
+        font-size: 12px;
+        font-family: Roboto;
+        font-weight: 400;
+        line-height: 20px;
+        letter-spacing: 0.28px;
+        word-wrap: break-word;
+        border-color: #A8944D;
+    }
+    table td a {
+        color: #A8944D !important;
+        text-decoration: underline; 
+    }
+    table thead {
+        background-color: #000000;
+        
+    }
+    table tbody {
+        text-align: center;
+        white-space: normal;
+    }
+    .insights-table {
+        width: 100%; 
+        border-collapse: collapse;
+    }
+    .insights-table th, 
+    .insights-table td {
+        border: 1px solid #A8944D; /* Define borders for cells */
+        padding: 2px 3px; /* Add padding for better spacing */
+    }
+    .insights-container::-webkit-scrollbar{
+        display: block;
+        width: 5px;
+        height: 5px;
+    }
+    .insights-container::-webkit-scrollbar-track{
+        background-color: #ae943f;
+    }
+    .insights-container::-webkit-scrollbar-thumb{
+        background-color: #58151c;
+    }
+    .core-follower-container::-webkit-scrollbar{
+        display: block;
+        width: 5px;
+        height: 5px;
+    }
+    .core-follower-container::-webkit-scrollbar-track{
+        background-color: #ae943f;
+    }
+    .core-follower-container::-webkit-scrollbar-thumb{
+        background-color: #58151c;
+    }
+    #tfDataTable_filter{
+        display: none;
+    }
+    #tfDataTable_info{
+        font-size: 12px;
+    }
+    #tfDataTable_paginate{
+        font-size: 12px;
+    }
+/* Responsive Design */
+@media (max-width: 768px) {
+    .filter-container-1{
+        flex-direction: column;
+        margin-top:20px;
+        gap: 20px;
+    }
+    .body-container{
+        margin-top:150px;
+    }
+    .scroll-container-wrapper {
+        max-width: 200px;
+    }
+}
+@media (max-width: 1024px) {
+    .filter-buttons {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-buttons {
+        gap: 10px;
+    }
+    .filter-buttons {
+        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: center;
+    }
+    .body-container{
+        margin-top:150px;
+    }
+    .filter-tab{
+        width:85%;
+    }
+}
+</style>

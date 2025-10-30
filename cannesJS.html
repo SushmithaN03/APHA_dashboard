@@ -1,0 +1,1260 @@
+{% load static %}
+<script>
+  // Modal Handling
+  const modal = document.getElementById('graph-modal');
+  const closeModalButton = document.getElementById('close-modal');
+
+  // Close Modal Functionality
+  closeModalButton.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    Plotly.purge('expanded-graph'); // Clear the graph in the modal
+  });
+
+
+function clearGraphs() {
+  const graphContainers = [
+    'fb-flw-chart',
+    'insta-flw-chart',
+    'yt-flw-chart',
+    'article-chart',
+  ];
+
+  graphContainers.forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (container) {
+      Plotly.purge(containerId); // Clear the graph
+      console.log("graphs Cleared")
+    } else {
+      console.warn(`Container with ID "${containerId}" not found for cleanup.`);
+    }
+  });
+}
+  // Plot Actual vs projected Analysis
+  function plot_avsp_Analysis(data) {
+    const containerIds = ['fb-avsp-chart', 'insta-avsp-chart', 'yt-avsp-chart'];
+    document.getElementById('fb-avsp-comm').innerHTML = '';
+    document.getElementById('insta-avsp-comm').innerHTML = '';
+    document.getElementById('yt-avsp-comm').innerHTML = '';
+    var flag = false;
+    // Iterate over each container to handle plotting or displaying no data message
+    containerIds.forEach((containerId, index) => {
+      const container = document.getElementById(containerId);
+
+      if (!container) {
+        console.error(`Container with ID "${containerId}" not found.`);
+        return;
+      }
+
+      // Clear any existing content in the container
+      container.innerHTML = '';
+
+      // Check if data exists and is in the expected format
+      if (!data || data ==="None" || !Array.isArray(data) || data.length !== containerIds.length || !data[index]) {
+        // Display "No graph available" if data is missing or invalid
+        const noDataMessage = document.createElement('div');
+        noDataMessage.textContent = 'No graph available';
+        noDataMessage.style.cssText = `
+          text-align: center;
+          font-size: 16px;
+          color: #888;
+          padding: 20px;
+        `;
+        container.appendChild(noDataMessage);
+        flag = true;
+        return;
+      }
+    });
+    if(flag == false){
+      const containers = [
+      { id: 'fb-avsp-chart', graphData: JSON.parse(data[0]['graph_json']),ccID: 'fb-avsp-comm',ccData: data[0]['commentary'] },
+      { id: 'insta-avsp-chart', graphData: JSON.parse(data[1]['graph_json']),ccID: 'insta-avsp-comm',ccData: data[1]['commentary'] },
+      { id: 'yt-avsp-chart', graphData: JSON.parse(data[2]['graph_json']),ccID: 'yt-avsp-comm',ccData: data[2]['commentary'] }
+    ];
+
+    const config = { responsive: true, displayModeBar: false, scrollZoom: true };
+
+    containers.forEach(container => {
+      const element = document.getElementById(container.id);
+      if (element) {
+        container.graphData.layout.height = 240;
+        Plotly.newPlot(container.id, container.graphData, container.graphData.layout, config);
+
+        // Add click event for expanding the graph
+        element.addEventListener('click', () => {
+          const modalGraph = document.getElementById('expanded-graph');
+
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+
+          const { clientWidth, clientHeight } = modalGraph;
+
+          const expandedLayout = {
+            ...container.graphData.layout,
+            height: clientHeight,
+            width: clientWidth,
+          };
+          Plotly.newPlot('expanded-graph', container.graphData.data, expandedLayout, config);
+        });
+        // Update Commentary
+        const commentary = container.ccData;
+        const commentaryContainer = document.getElementById(container.ccID);
+        if (commentaryContainer) {
+          // Clear any existing content in the commentary container
+          commentaryContainer.innerHTML = '';
+
+          // Create a <ul> to hold the points
+          const ul = document.createElement('ul');
+          ul.className = 'text-left text-md list-disc p-4';
+
+          // Add commentary as list items
+          const li = document.createElement('li');
+          li.textContent = commentary;
+          ul.appendChild(li);
+
+          // Append the list to the commentary container
+          commentaryContainer.appendChild(ul);
+        } else {
+          console.error(`Container with ID "${container.ccID}" not found.`);
+        }
+      } else {
+        console.error(`Container with ID "${container.id}" not found.`);
+      }
+    });
+    }
+  }
+  // Plot Followers Count Analysis plotFollowersComparison
+  function plotFollowersCountAnalysis(data) {
+    const containerIds = ['fb-flw-chart', 'insta-flw-chart', 'yt-flw-chart'];
+    document.getElementById('fb-flw-comm').innerHTML = '';
+    document.getElementById('insta-flw-comm').innerHTML = '';
+    document.getElementById('yt-flw-comm').innerHTML = '';
+    flag = false;
+    // Iterate over each container to handle plotting or displaying no data message
+    containerIds.forEach((containerId, index) => {
+      const container = document.getElementById(containerId);
+
+      if (!container) {
+        console.error(`Container with ID "${containerId}" not found.`);
+        return;
+      }
+
+      // Clear any existing content in the container
+      container.innerHTML = '';
+
+      // Check if data exists and is in the expected format
+      if (!data || data ==="None" || !Array.isArray(data) || data.length !== containerIds.length || !data[index]) {
+        // Display "No graph available" if data is missing or invalid
+        const noDataMessage = document.createElement('div');
+        noDataMessage.textContent = 'No graph available';
+        noDataMessage.style.cssText = `
+          text-align: center;
+          font-size: 16px;
+          color: #888;
+          padding: 20px;
+        `;
+        container.appendChild(noDataMessage);
+        flag = true;
+        return;
+      }
+    });
+    if(flag == false){
+      const containers = [
+      { id: 'fb-flw-chart', graphData: JSON.parse(data[0]['graph']),ccID: 'fb-flw-comm',ccData: data[0]['commentary'] },
+      { id: 'insta-flw-chart', graphData: JSON.parse(data[1]['graph']),ccID: 'insta-flw-comm',ccData: data[1]['commentary'] },
+      { id: 'yt-flw-chart', graphData: JSON.parse(data[2]['graph']),ccID: 'yt-flw-comm',ccData: data[2]['commentary'] }
+    ];
+
+    const config = { responsive: true, displayModeBar: false, scrollZoom: true };
+
+    containers.forEach(container => {
+      const element = document.getElementById(container.id);
+      if (element) {
+        container.graphData.layout.height = 240;
+        Plotly.newPlot(container.id, container.graphData, container.graphData.layout, config);
+
+        // Add click event for expanding the graph
+        element.addEventListener('click', () => {
+          const modalGraph = document.getElementById('expanded-graph');
+
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+
+          const { clientWidth, clientHeight } = modalGraph;
+
+          const expandedLayout = {
+            ...container.graphData.layout,
+            height: clientHeight,
+            width: clientWidth,
+          };
+          Plotly.newPlot('expanded-graph', container.graphData.data, expandedLayout, config);
+        });
+        // Update Commentary
+        const commentary = container.ccData;
+        const commentaryContainer = document.getElementById(container.ccID);
+        if (commentaryContainer) {
+          // Clear any existing content in the commentary container
+          commentaryContainer.innerHTML = '';
+
+          // Create a <ul> to hold the points
+          const ul = document.createElement('ul');
+          ul.className = 'text-left text-md list-disc p-4';
+
+          // Add commentary as list items
+          const li = document.createElement('li');
+          li.textContent = commentary;
+          ul.appendChild(li);
+
+          // Append the list to the commentary container
+          commentaryContainer.appendChild(ul);
+        } else {
+          console.error(`Container with ID "${container.ccID}" not found.`);
+        }
+      } else {
+        console.error(`Container with ID "${container.id}" not found.`);
+      }
+      
+    });
+    }
+  }
+  function plotFollowersComparison2024(data) {
+    const containerIds = ['fb-cmp-chart', 'insta-cmp-chart', 'yt-cmp-chart'];
+    document.getElementById('fb-cmp-comm').innerHTML = '';
+    document.getElementById('insta-cmp-comm').innerHTML = '';
+    document.getElementById('yt-cmp-comm').innerHTML = '';
+    let flag = false;
+    // Iterate over each container to handle plotting or displaying no data message
+    containerIds.forEach((containerId, index) => {
+      const container = document.getElementById(containerId);
+
+      if (!container) {
+        console.error(`Container with ID "${containerId}" not found.`);
+        return;
+      }
+      container.innerHTML = '';
+      // Check if data exists and is in the expected format
+      if (!data || data === 'None' || !Array.isArray(data) || data.length !== containerIds.length || !data[index]) {
+        // Display "No graph available" if data is missing or invalid
+        const noDataMessage = document.createElement('div');
+        noDataMessage.textContent = 'No graph available';
+        noDataMessage.style.cssText = `
+          text-align: center;
+          font-size: 16px;
+          color: #888;
+          padding: 20px;
+        `;
+        container.appendChild(noDataMessage);
+        flag = true;
+        return;
+      }else{
+        flag = false;
+      }
+    });
+    if (flag == false) {
+      const containers = [
+        { id: 'fb-cmp-chart', graphData: JSON.parse(data[0]['graphs_json']),ccID: 'fb-cmp-comm',ccData: data[0]['commentary'] },
+        { id: 'insta-cmp-chart', graphData: JSON.parse(data[1]['graphs_json']),ccID: 'insta-cmp-comm',ccData: data[1]['commentary'] },
+        { id: 'yt-cmp-chart', graphData: JSON.parse(data[2]['graphs_json']),ccID: 'yt-cmp-comm',ccData: data[2]['commentary'] }
+      ];
+      const config = { responsive: true, displayModeBar: false, scrollZoom: true };
+      containers.forEach(container => {
+        const element = document.getElementById(container.id);
+        if (element) {
+          container.graphData.layout.height = 240;
+          Plotly.newPlot(container.id, container.graphData, container.graphData.layout, config);
+
+          // Add click event for expanding the graph
+          element.addEventListener('click', () => {
+            const modalGraph = document.getElementById('expanded-graph');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const { clientWidth, clientHeight } = modalGraph;
+
+            const expandedLayout = {
+              ...container.graphData.layout,
+              height: clientHeight,
+              width: clientWidth,
+            };
+            Plotly.newPlot('expanded-graph', container.graphData.data, expandedLayout, config);
+          });
+          // Update Commentary
+          const commentary = container.ccData;
+          const commentaryContainer = document.getElementById(container.ccID);
+          if (commentaryContainer) {
+            // Clear any existing content in the commentary container
+            commentaryContainer.innerHTML = '';
+
+            // Create a <ul> to hold the points
+            const ul = document.createElement('ul');
+            ul.className = 'text-left text-md list-disc p-4';
+
+            // Add commentary as list items
+            commentary.forEach(point => {
+              const li = document.createElement('li');
+              li.textContent = point;
+              ul.appendChild(li);
+            });
+
+            // Append the list to the commentary container
+            commentaryContainer.appendChild(ul);
+          } else {
+            console.error(`Container with ID "${container.ccID}" not found.`);
+          }
+        } else {
+          console.error(`Container with ID "${container.id}" not found.`);
+        }
+      });
+    }
+  }
+  function plotDODFollowersComparison2024(data) {
+    const containerIds = ['fb-fgc-chart', 'insta-fgc-chart', 'yt-fgc-chart'];
+    document.getElementById('fb-fgc-comm').innerHTML = '';
+    document.getElementById('insta-fgc-comm').innerHTML = '';
+    document.getElementById('yt-fgc-comm').innerHTML = '';
+    let flag = false;
+    // Iterate over each container to handle plotting or displaying no data message
+    containerIds.forEach((containerId, index) => {
+      const container = document.getElementById(containerId);
+
+      if (!container) {
+        console.error(`Container with ID "${containerId}" not found.`);
+        return;
+      }
+      container.innerHTML = '';
+      // Check if data exists and is in the expected format
+      if (!data || data === 'None' || !Array.isArray(data) || data.length !== containerIds.length || !data[index]) {
+        // Display "No graph available" if data is missing or invalid
+        const noDataMessage = document.createElement('div');
+        noDataMessage.textContent = 'No graph available';
+        noDataMessage.style.cssText = `
+          text-align: center;
+          font-size: 16px;
+          color: #888;
+          padding: 20px;
+        `;
+        container.appendChild(noDataMessage);
+        flag = true;
+        return;
+      }else{
+        flag = false;
+      }
+    });
+    if (flag == false) {
+      const containers = [
+        { id: 'fb-fgc-chart', graphData: JSON.parse(data[0]['graphs_json']),ccID: 'fb-fgc-comm',ccData: data[0]['commentary'] },
+        { id: 'insta-fgc-chart', graphData: JSON.parse(data[1]['graphs_json']),ccID: 'insta-fgc-comm',ccData: data[1]['commentary'] },
+        { id: 'yt-fgc-chart', graphData: JSON.parse(data[2]['graphs_json']),ccID: 'yt-fgc-comm',ccData: data[2]['commentary'] }
+      ];
+      const config = { responsive: true, displayModeBar: false, scrollZoom: true };
+      containers.forEach(container => {
+        const element = document.getElementById(container.id);
+        if (element) {
+          container.graphData.layout.height = 240;
+          Plotly.newPlot(container.id, container.graphData, container.graphData.layout, config);
+
+          // Add click event for expanding the graph
+          element.addEventListener('click', () => {
+            const modalGraph = document.getElementById('expanded-graph');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const { clientWidth, clientHeight } = modalGraph;
+
+            const expandedLayout = {
+              ...container.graphData.layout,
+              height: clientHeight,
+              width: clientWidth,
+            };
+            Plotly.newPlot('expanded-graph', container.graphData.data, expandedLayout, config);
+          });
+          // Update Commentary
+          const commentary = container.ccData;
+          const commentaryContainer = document.getElementById(container.ccID);
+          if (commentaryContainer) {
+            // Clear any existing content in the commentary container
+            commentaryContainer.innerHTML = '';
+
+            // Create a <ul> to hold the points
+            const ul = document.createElement('ul');
+            ul.className = 'text-left text-md list-disc p-4';
+
+            // Add commentary as list items
+            commentary.forEach(point => {
+              const li = document.createElement('li');
+              li.textContent = point;
+              ul.appendChild(li);
+            });
+
+            // Append the list to the commentary container
+            commentaryContainer.appendChild(ul);
+          } else {
+            console.error(`Container with ID "${container.ccID}" not found.`);
+          }
+        } else {
+          console.error(`Container with ID "${container.id}" not found.`);
+        }
+      });
+    }
+  }
+  function cummulativeFollowersChange(data) {
+    const containerIds = ['fb-cfc-chart', 'insta-cfc-chart', 'yt-cfc-chart'];
+    document.getElementById('fb-cfc-comm').innerHTML = '';
+    document.getElementById('insta-cfc-comm').innerHTML = '';
+    document.getElementById('yt-cfc-comm').innerHTML = '';
+    let flag = false;
+    // Iterate over each container to handle plotting or displaying no data message
+    containerIds.forEach((containerId, index) => {
+      const container = document.getElementById(containerId);
+
+      if (!container) {
+        console.error(`Container with ID "${containerId}" not found.`);
+        return;
+      }
+      container.innerHTML = '';
+      // Check if data exists and is in the expected format
+      if (!data || data === 'None' || !Array.isArray(data) || data.length !== containerIds.length || !data[index]) {
+        // Display "No graph available" if data is missing or invalid
+        const noDataMessage = document.createElement('div');
+        noDataMessage.textContent = 'No graph available';
+        noDataMessage.style.cssText = `
+          text-align: center;
+          font-size: 16px;
+          color: #888;
+          padding: 20px;
+        `;
+        container.appendChild(noDataMessage);
+        flag = true;
+        return;
+      }else{
+        flag = false;
+      }
+    });
+    if (flag == false) {
+      const containers = [
+        { id: 'fb-cfc-chart', graphData: JSON.parse(data[0]['graphs_json']),ccID: 'fb-cfc-comm',ccData: data[0]['commentary'] },
+        { id: 'insta-cfc-chart', graphData: JSON.parse(data[1]['graphs_json']),ccID: 'insta-cfc-comm',ccData: data[1]['commentary'] },
+        { id: 'yt-cfc-chart', graphData: JSON.parse(data[2]['graphs_json']),ccID: 'yt-cfc-comm',ccData: data[2]['commentary'] }
+      ];
+      const config = { responsive: true, displayModeBar: false, scrollZoom: true };
+      containers.forEach(container => {
+        const element = document.getElementById(container.id);
+        if (element) {
+          container.graphData.layout.height = 240;
+          Plotly.newPlot(container.id, container.graphData, container.graphData.layout, config);
+
+          // Add click event for expanding the graph
+          element.addEventListener('click', () => {
+            const modalGraph = document.getElementById('expanded-graph');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const { clientWidth, clientHeight } = modalGraph;
+
+            const expandedLayout = {
+              ...container.graphData.layout,
+              height: clientHeight,
+              width: clientWidth,
+            };
+            Plotly.newPlot('expanded-graph', container.graphData.data, expandedLayout, config);
+          });
+          // Update Commentary
+          const commentary = container.ccData;
+          const commentaryContainer = document.getElementById(container.ccID);
+          if (commentaryContainer) {
+            // Clear any existing content in the commentary container
+            commentaryContainer.innerHTML = '';
+
+            // Create a <ul> to hold the points
+            const ul = document.createElement('ul');
+            ul.className = 'text-left text-md list-disc p-4';
+
+            // Add commentary as list items
+            commentary.forEach(point => {
+              const li = document.createElement('li');
+              li.textContent = point;
+              ul.appendChild(li);
+            });
+
+            // Append the list to the commentary container
+            commentaryContainer.appendChild(ul);
+          } else {
+            console.error(`Container with ID "${container.ccID}" not found.`);
+          }
+        } else {
+          console.error(`Container with ID "${container.id}" not found.`);
+        }
+      });
+    }
+  }
+ // Plot Article Analysis
+function plotArticleAnalysis(data) {
+  const containerId = 'article-chart';
+  const container = document.getElementById(containerId);
+  document.getElementById('article-comm').innerHTML = '';
+  if (!container) {
+    console.error(`Container with ID "${containerId}" not found.`);
+    return;
+  }
+
+  // Clear the container
+  container.innerHTML = '';
+  var flag = false;
+  if (!data || data === '' || data === 'null' || data === 'None') {
+    // Display "No graph available" if data is missing or invalid
+    const noDataMessage = document.createElement('div');
+    noDataMessage.textContent = 'No graph available';
+    noDataMessage.style.cssText = `
+      text-align: center;
+      font-size: 16px;
+      color: #888;
+      padding: 20px;
+    `;
+    container.appendChild(noDataMessage);
+    flag = true;
+    return;
+  }
+  if(flag == false){
+    try {
+    const graphData = JSON.parse(data['graph_json']);
+    const config = { responsive: true, displayModeBar: false, scrollZoom: true };
+
+    const { clientWidth, clientHeight } = container;
+
+    const layout = {
+      ...graphData.layout,
+      height: clientHeight,
+      width: clientWidth,
+    };
+
+    Plotly.newPlot(containerId, graphData, layout, config);
+    // Add click event for expanding the graph
+    container.addEventListener('click', () => {
+      const modalGraph = document.getElementById('expanded-graph');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const { clientWidth, clientHeight } = modalGraph;
+
+      const expandedLayout = {
+        ...graphData.layout,
+        height: clientHeight,
+        width: clientWidth,
+      };
+      Plotly.newPlot('expanded-graph', graphData.data, expandedLayout, config);
+    });
+    // Update Commentary
+    const commentary = data['commentary'];
+    const commentaryContainer = document.getElementById('article-comm');
+    if (commentaryContainer) {
+      // Clear any existing content in the commentary container
+      commentaryContainer.innerHTML = '';
+
+      // Create a <ul> to hold the points
+      const ul = document.createElement('ul');
+      ul.className = 'text-left text-md list-disc p-4';
+
+      // Add commentary as list items
+      const li = document.createElement('li');
+      li.textContent = commentary;
+      ul.appendChild(li);
+
+      // Append the list to the commentary container
+      commentaryContainer.appendChild(ul);
+    } else {
+      console.error(`Container with ID "article-comm" not found.`);
+    }
+
+  } catch (error) {
+    console.error('Error parsing or plotting data:', error);
+
+    // Display an error message
+    const errorMessage = document.createElement('div');
+    errorMessage.textContent = 'Failed to load the graph.';
+    errorMessage.style.cssText = `
+      text-align: center;
+      font-size: 16px;
+      color: #f00;
+      padding: 20px;
+    `;
+    container.appendChild(errorMessage);
+  }
+  }
+}
+  function updatingTableWithData(tableData, ccData) {
+    var flag = false;
+    document.getElementById('apha-followers-records-comm').innerHTML = '';
+    var table = $("#apha-followers-records");
+    if ($.fn.DataTable.isDataTable(table)) {
+      table.DataTable().clear().destroy();
+    }
+    if(!tableData ||tableData === "None"|| tableData.length===0){
+      var t=$(`#apha-followers-records`),b=t.find("tbody"),h=t.find("thead");
+      b.empty();h.empty();
+      h.html('<tr><th>No data Available</th></tr>');
+      flag = true;
+      return;
+    }
+    if(flag == false){
+      outputTable = JSON.parse(tableData);
+
+      var tbody = table.find("tbody");
+      var thead = table.find("thead");
+      table.empty();
+      tbody.empty();
+      thead.empty();
+
+      function isURL(str) {
+        // Regular expression to check if a string looks like a URL
+        var urlPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+        return urlPattern.test(str);
+      }
+
+      if (!$.fn.DataTable.isDataTable('#apha-followers-records')) {
+        // Initialize or reinitialize DataTable
+        table.DataTable({
+          data: outputTable,
+          style: 'plain',
+          columns: Object.keys(outputTable[0]).map(function (key) {
+            return {
+              data: key,
+              title: key,
+              render: function (data, type, row) {
+                // If the data looks like a URL, format it as an HTML anchor element
+                if (type === 'display' && isURL(data)) {
+                  return '<a href="' + data + '" target="_blank">' + "Link" + '</a>';
+                }
+                return data; // Return the original data for other types (sorting, filtering, etc.)
+              }
+            };
+          }),
+          paging: false, // Enable pagination
+          pageLength: 20, // Number of rows per page (adjust as needed)
+          fixedHeader: true,
+          info: false, // Show table information (optional)
+        });
+        // Update Commentary
+        const commentary = ccData;
+        const commentaryContainer = document.getElementById('apha-followers-records-comm');
+        if (commentaryContainer) {
+          // Clear any existing content in the commentary container
+          commentaryContainer.innerHTML = '';
+
+          // Create a <ul> to hold the points
+          const ul = document.createElement('ul');
+          ul.className = 'text-left text-md list-disc p-4';
+
+          // Add commentary as list items
+          commentary.forEach(point => {
+            const li = document.createElement('li');
+            li.textContent = point;
+            ul.appendChild(li);
+          });
+
+          // Append the list to the commentary container
+          commentaryContainer.appendChild(ul);
+        } else {
+          console.error(`Container with ID "apha-followers-records-comm" not found.`);
+        }
+      }
+    }
+  }
+  function articlesTable(tableData){
+    const table = $(`#articles-table`);
+    const commentaryContainer = $(`#article-table-comm`);
+
+    commentaryContainer.empty();
+    table.empty();
+    if (!tableData || tableData === "None" || tableData.length === 0) {
+      table.empty();
+      table.html(`
+        <thead>
+          <tr><th>No data Available</th></tr>
+        </thead>
+        <tbody></tbody>`);
+      return;
+    }
+
+    // Parse data
+    const { data, commentary } = tableData;
+    const parsedData = JSON.parse(data || "[]");
+
+    if (!parsedData || parsedData.length === 0) {
+      table.html(`
+        <thead>
+          <tr><th>No data Available</th></tr>
+        </thead>
+        <tbody></tbody>`);
+      return;
+    }
+    // Define columns
+    const columns = [
+      { key: "Thumbnail", title: "Article" },
+      { key: "articleTitle", title: "Title" },
+      { key: "viewcount", title: "Views" },
+      { key: "article_url", title: "URL" },
+      { key: "postedBy", title: "Posted At" },
+    ];
+
+    // Generate table header
+    const createTableHeader = () => `
+      <thead>
+        <tr>${columns.map(col => `<th>${col.title}</th>`).join("")}</tr>
+      </thead>`;
+
+    // Generate table rows
+    const createTableRows = () => `
+      <tbody>
+        ${parsedData.map(row => `
+          <tr>${columns.map(col => {
+            const cellData = row[col.key] || "-";
+            if (col.title === "URL") {
+              return `<td><a href="${cellData}" target="_blank" class="external-link" >Link</a></td>`;
+            } else if (col.title === "Article") {
+              return `<td><img src="${cellData}" alt="Thumbnail" style="width: 100px; height: auto; border-radius: 8px;" /></td>`;
+            }
+            return `<td>${cellData}</td>`;
+          }).join("")}</tr>
+        `).join("")}
+      </tbody>`;
+
+    // Update the table
+    table.append(createTableHeader());
+    table.append(createTableRows());
+
+    // Update commentary if available
+    if (commentary) {
+      commentaryContainer.append(
+        $('<ul>', { class: "text-left text-md list-disc p-4" }).append(
+          $('<li>').text(commentary)
+        )
+      );
+    }
+
+    // Add modal functionality
+    const modal = $("#table-modal");
+    const modalContent = $("#expanded-table");
+    const closeModal = $("#table-close-modal");
+
+    table.off("click").on("click", function () {
+      const expandedTable = table.clone();
+      expandedTable.removeAttr("id"); // Avoid duplicate ID
+      modalContent.empty().append(expandedTable); // Append table to modal content
+      modal.removeClass("hidden"); // Show modal
+    });
+    table.on("click", ".external-link", function (e) {
+      e.stopPropagation(); // Stop the event from bubbling up to the table's click handler
+    });
+
+    closeModal.off("click").on("click", function () {
+      modal.addClass("hidden"); // Hide modal
+    });
+
+    modal.off("click").on("click", function (e) {
+      if ($(e.target).is("#table-modal")) {
+        modal.addClass("hidden"); // Close modal if clicked outside content
+      }
+    });
+  }
+  function hashtagsTable(outputTable, tableId, ccID) {
+    var table = $(`#${tableId}`);
+    const commentaryContainer = $(`#${ccID}`);
+    commentaryContainer.empty(); // Clear previous commentary
+
+    if ($.fn.DataTable.isDataTable(table)) {
+      table.DataTable().clear().destroy();
+    }
+
+    var flag = false;
+
+    if (!outputTable || outputTable === "None" || outputTable.length === 0) {
+      const table = $(`#${tableId}`);
+      table.empty();
+      table.html(`
+        <thead>
+          <tr><th>No data Available</th></tr>
+        </thead>
+        <tbody></tbody>`);
+      flag=true;
+      return;
+    }
+
+    
+    var tbody = table.find("tbody");
+    var thead = table.find("thead");
+    table.empty();
+    tbody.empty();
+    thead.empty();
+    const { data, commentary } = outputTable;
+    if (!data || data === "None" || data.length === 0) {
+        table.empty();
+        table.html(`
+          <thead>
+            <tr><th>No data Available</th></tr>
+          </thead>
+          <tbody></tbody>`);
+          flag=true;
+        return;
+      }
+    if (flag == false) {
+      const Columns = [
+        { data: "hashtag", title: "Hashtags" },
+        { data: "repetition_count", title: "Repetitions" },
+        { data: "reach_count", title: "Reach" },
+        { data: "impressions_count", title: "Impression" },
+        { data: "likes_count", title: "Likes" },
+        { data: "comments_count", title: "Comments" },
+      ];
+      tbody.empty();
+      thead.empty();
+      // Initialize or reinitialize DataTable
+      table.DataTable({
+        data: data,
+        columns: Columns,
+        paging: false,
+        pageLength: 20,
+        fixedHeader: true,
+        info: false,
+      });
+      // Update Commentary
+      if (commentary) {
+        const ul = document.createElement('ul');
+        ul.className = 'text-left text-md list-disc p-4';
+        commentary.forEach(point => {
+          const li = document.createElement('li');
+          li.textContent = point;
+          ul.appendChild(li);
+        });
+        commentaryContainer.append(ul);
+      }
+      // Add Modal Functionality
+      // table.on("click", function (e) {
+      //   const modal = $("#table-modal");
+      //   const modalContent = $("#expanded-table");
+      //   // Clone the table content into the modal
+      //   const expandedTable = table.clone();
+      //   expandedTable.removeAttr("id"); // Avoid ID duplication
+      //   expandedTable.find("tbody").html(tbody.html());
+      //   modalContent.html(expandedTable);
+      //   // Show the modal
+      //   modal.removeClass("hidden");
+      // });
+
+      // Close modal functionality
+      $("#table-close-modal").on("click", function () {
+        $("#table-modal").addClass("hidden");
+      });
+
+      // Ensure modal closes when clicking outside the modal content
+      $("#table-modal").on("click", function (e) {
+        if ($(e.target).is("#table-modal")) {
+          $(this).addClass("hidden");
+        }
+      });
+    }
+  }
+  function renderPostsTable(outputTable, tableId, ccData, ccID) {
+    var flag = false;
+    document.getElementById(ccID).innerHTML = '';
+    if(!outputTable||outputTable==="None"||outputTable.length===0){
+      var t=$(`#${tableId}`),b=t.find("tbody"),h=t.find("thead");
+      b.empty();
+      h.empty();
+      h.html('<tr><th>No data Available</th></tr>');
+      flag=true;
+      return;
+    }
+    if(flag==false){
+      try {
+      outputTable = JSON.parse(outputTable);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      flag=true;
+      return;
+    }
+
+    var table = $(`#${tableId}`);
+    var tbody = table.find("tbody");
+    var thead = table.find("thead");
+    
+    // Clear existing table content
+    tbody.empty();
+    thead.empty();
+
+    if (!outputTable || outputTable.length === 0) {
+      thead.html('<tr><th>No data Found</th></tr>');
+      flag = true;
+      return;
+    }
+    console.log("Output Table:", outputTable);
+    if(flag == false){
+      let columns;
+      if (tableId === "fb_post_table") {
+        columns = [
+          { header: "Post", key: "valid_media_url" },
+          { header: "Reach", key: "reach_count" },
+          { header: "Impression", key: "impressions_count" },
+          { header: "Likes", key: "likes_count" },
+          { header: "Comments", key: "comments_count" },
+          { header: "Caption", key: "message" },
+          { header: "URL", key: "post_url" }
+        ];
+      } else if (tableId === "insta_post_table") {
+        columns = [
+          { header: "Post", key: "media_url" },
+          { header: "Reach", key: "reach_count" },
+          { header: "Impression", key: "impression_count" },
+          { header: "Likes", key: "like_count" },
+          { header: "Comments", key: "comments_count" },
+          { header: "Caption", key: "caption" },
+          { header: "URL", key: "post_url" }
+        ];
+      } else if (tableId === "yt_post_table") {
+        columns = [
+          { header: "Video", key: "thumbnail_url" },
+          { header: "Views", key: "viewCount" },
+          { header: "Likes", key: "likeCount" },
+          { header: "Comments", key: "commentCount" },
+          { header: "Title", key: "title" },
+          { header: "URL", key: "video_url" }
+        ];
+      }else{
+        console.error("Invalid tableId specified.");
+        return;
+      }
+      let headerRow = $("<tr></tr>");
+      columns.forEach(function (col) {
+          headerRow.append(`<th>${col.header}</th>`);
+      });
+      thead.append(headerRow);
+      function isURL(str) {
+          return /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i.test(str);
+      }
+      function truncateText(text, limit) {
+          return text.length > limit ? text.substring(0, limit) + "..." : text;
+      }
+      outputTable.forEach(function (rowData) {
+        let row = $("<tr></tr>");
+        columns.forEach(function (col) {
+          let cellData = rowData[col.key];
+          if ((col.header === "Post" || col.header === "Video") && cellData) {
+            row.append(`<td><img src="${cellData}" alt="Thumbnail" style="width: 100px; height: auto; border-radius: 8px;" /></td>`);
+          } else if (col.header === "URL" && isURL(cellData)) {
+            row.append(`<td><a href="${cellData}" target="_blank" class="external-link" >Link</a></td>`);
+          } else if ((col.header === "Caption") && cellData) {
+            let truncatedMessage = truncateText(cellData, 20);
+            row.append(`
+                      <td>
+                          <span class="message-preview">${truncatedMessage}</span>
+                          <span class="full-message hidden">${cellData}</span>
+                          <br>
+                          <a href="#" class="see-more" style="font-size:10px; padding: 3px 3px; margin: 0 3px;">See More</a>
+                      </td>
+                  `);
+          } else {
+            row.append(`<td>${cellData}</td>`);
+          }
+        });
+        tbody.append(row);
+      });
+
+      table.on("click", ".see-more", function (e) {
+        e.preventDefault();
+        e.stopPropagation(); 
+        let link = $(this);
+        let parentCell = link.closest("td");
+        parentCell.find(".message-preview, .full-message").toggle();
+        link.text(link.text() === "See More" ? "See Less" : "See More");
+      });
+
+      // Add Modal Functionality
+      table.on("click", function (e) {
+        if (!$(e.target).closest(".see-more").length) {
+          const modal = $("#table-modal");
+          const modalContent = $("#expanded-table");
+
+          const expandedTable = table.clone();
+          expandedTable.removeAttr("id"); // Avoid ID duplication
+          expandedTable.find("tbody").html(tbody.html());
+          modalContent.html(expandedTable);
+          // Add "See More" functionality for the modal
+          $("#expanded-table").on("click", ".see-more", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            let link = $(this);
+            let parentCell = link.closest("td");
+            parentCell.find(".message-preview, .full-message").toggle();
+            link.text(link.text() === "See More" ? "See Less" : "See More");
+          });
+          // Show the modal
+          modal.removeClass("hidden");
+        }
+      });
+      // Update Commentary
+      const commentary = ccData;
+      const commentaryContainer = document.getElementById(ccID);
+      if (commentaryContainer) {
+        // Clear any existing content in the commentary container
+        commentaryContainer.innerHTML = '';
+
+        // Create a <ul> to hold the points
+        const ul = document.createElement('ul');
+        ul.className = 'text-left text-md list-disc p-4';
+
+        // Add commentary as list items
+        commentary.forEach(point => {
+          const li = document.createElement('li');
+          li.textContent = point;
+          ul.appendChild(li);
+        });
+
+        // Append the list to the commentary container
+        commentaryContainer.appendChild(ul);
+      } else {
+        console.error(`Container with ID "${commentaryContainer}" not found.`);
+      }
+
+      // Close modal functionality
+      $("#table-close-modal").on("click", function () {
+        $("#table-modal").addClass("hidden");
+      });
+      table.on("click", ".external-link", function (e) {
+        e.stopPropagation(); // Stop the event from bubbling up to the table's click handler
+      });
+      // Ensure modal closes when clicking outside the modal content
+      $("#table-modal").on("click", function (e) {
+        if ($(e.target).is("#table-modal")) {
+          $(this).addClass("hidden");
+        }
+      });
+      }
+    }
+  }
+function updateCurrentFollowers(data) {
+  const followersData = {
+    "fb-current-followers-count": data.facebook_followers ?? "N/A",
+    "insta-current-followers-count": data.instagram_followers ?? "N/A",
+    "yt-current-followers-count": data.youtube_followers ?? "31,600",
+  };
+
+  Object.keys(followersData).forEach((containerId) => {
+    let followerCount = followersData[containerId];
+
+    // Check if followerCount is 0 or a valid number
+    if (followerCount === 0 || isNaN(followerCount)) {
+      followerCount = "31,600"; // Show "N/A" if the count is 0 or invalid
+    } else {
+      followerCount = Number(followerCount);  // Convert to a number if it's not already
+      const formattedCount = followerCount.toLocaleString();
+      followerCount = formattedCount;
+    }
+
+    const container = $(`#${containerId}`);
+    container.text(followerCount);
+  });
+}
+  // Document Ready Function
+  $(document).ready(function () {
+    const context = {{ data | safe }};
+    console.log(context)
+    if (context) {
+      updateCurrentFollowers(context.current_followers ?? null);
+
+      plotFollowersCountAnalysis(context.followers_count_analysis ?? null);
+      plotArticleAnalysis(context.articles_analysis ?? null);
+      plot_avsp_Analysis(context.actual_projected_followers_analysis ?? null);
+      plotFollowersComparison2024(context.followers_comparison_2024_2025 ?? null);
+      plotDODFollowersComparison2024(context.dod_followers_comparison_2024_2025 ?? null);
+      cummulativeFollowersChange(context.cumulative_followers_change ?? null);
+      updatingTableWithData(context.core_followers['data'] ?? null, context.core_followers['commentary'] ?? null);
+
+      const postInsights = context.post_insights_and_hashtags ?? {};
+
+      // Render post tables
+      renderPostsTable(postInsights['fb_results']?.['top_posts'] ?? null, "fb_post_table",postInsights['fb_results']?.['commentary'] ?? null ,"fb-post-comm");
+      renderPostsTable(postInsights['insta_results']?.['top_posts'] ?? null, "insta_post_table",postInsights['insta_results']?.['commentary'] ?? null ,"insta-post-comm");
+      renderPostsTable(postInsights['yt_results']?.['top_posts'] ?? null, "yt_post_table",postInsights['yt_results']?.['commentary'] ?? null ,"yt-post-comm");
+      articlesTable(context.articles_analysis_table ?? null);
+      // Render hashtags tables
+      hashtagsTable(postInsights['hashtag_results']?.['fb'] ?? null, "fb-hashtag_table","fb-hashtag-comm");
+      hashtagsTable(postInsights['hashtag_results']?.['insta'] ?? null, "insta-hashtag_table","insta-hashtag-comm");
+    } else {
+      console.warn('No data available.');
+    }
+    function validAphaDay(dateString) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Remove time component
+
+      const selectedDate = new Date(dateString);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      return selectedDate < today; // Only allow days strictly before today
+    }
+    function activateDefaultAphaButton(mockDateString = null) {
+      const today = mockDateString ? new Date(mockDateString) : new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Update to actual apha start date
+      const aphaStartDate = new Date(2025, 10, 2); // Nov is 10 (0-indexed)
+      aphaStartDate.setHours(0, 0, 0, 0);
+
+      let currentAphaDay = 0;
+      if (today >= aphaStartDate) {
+        currentAphaDay = Math.floor((today - aphaStartDate) / (1000 * 60 * 60 * 24)) + 1;
+        currentAphaDay = Math.min(currentAphaDay, 5); // Limit to 4 days
+      }
+
+      console.log("[DEBUG] Today:", today.toDateString());
+      console.log("[DEBUG] apha Start Date:", aphaStartDate.toDateString());
+      console.log("[DEBUG] Current apha Day:", currentAphaDay);
+
+      let targetDay = null;
+      if (currentAphaDay <= 1) {
+        // Pre-apha fallback
+        $('#pre-apha').addClass('active');
+        console.log("[DEBUG] Activating: Pre-Apha");
+      } else {
+        // Activate button for previous day
+        targetDay = currentAphaDay - 1;
+
+        let matched = false;
+        $('.filter-buttons button').not('#arrow-left, #arrow-right').each(function () {
+          const btnDay = parseInt($(this).data('day'));
+          if (btnDay === targetDay) {
+            $(this).addClass('active');
+            matched = true;
+            console.log(`[DEBUG] Activating Apha Day ${btnDay} button`);
+            this.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+
+            return false; // Break loop
+          }
+        });
+        if (!matched) {
+          console.warn(`[DEBUG] No matching button for Apha Day ${targetDay}`);
+        }
+      }
+      // Disable buttons for future days
+      // $('.filter-buttons button').not('#arrow-left, #arrow-right').each(function () {
+      //   const btnDay = parseInt($(this).data('day'));
+      //   if (btnDay > currentAphaDay) {
+      //     $(this).prop('disabled', true).addClass('disabled');
+      //     console.log(`[DEBUG] Disabling apha Day ${btnDay} button`);
+      //   } else {
+      //     $(this).prop('disabled', false).removeClass('disabled');
+      //   }
+      // });
+      // add text for the day into header if targetDay is pre-apha or post apha set text accordingly
+      const headerText = document.getElementById('selected-date');
+      if (targetDay === null) {
+        headerText.innerHTML = "Pre-Apha";
+      } else if (targetDay === 0) {
+        headerText.innerHTML = "Apha Day 1";
+      } else {
+        headerText.innerHTML = `Apha Day ${targetDay}`;
+      }
+      console.log("[DEBUG] Header Text:", headerText.innerHTML);
+      
+    }
+    // Activate default Apha button
+    activateDefaultAphaButton();    
+    // Filter Buttons Click Handler
+    $('.filter-buttons button').not('#arrow-left, #arrow-right').on('click', function () {
+      const buttonId = $(this).attr('id');
+      const aphaDay = $(this).data('day');
+      const aphaDate = $(this).data('tooltip');
+      console.log("[DEBUG] Button ID:", buttonId);
+      console.log("[DEBUG] Apha Day:", aphaDay);
+      console.log("[DEBUG] Apha Date:", aphaDate);
+
+      if (aphaDay === 'pre-apha') {
+        // Proceed for pre-apha
+      } else if (aphaDay === 'post-apha') {
+          alert('No Insights available for upcoming days yet.');
+          return;
+        // Optional: add logic for post-apha
+      } else if (aphaDay > 0 && aphaDay < 13) {
+        if (!validAphaDay(aphaDate)) {
+          alert('No Insights available for upcoming days yet.');
+          return;
+        }
+      }
+
+
+      $('.filter-buttons button').not('#arrow-left, #arrow-right').removeClass('active');
+      $(this).addClass('active');
+      
+      let params = {};
+      if (buttonId === 'pre-apha') {
+        params = { preApha: 'true' };
+      } else if (buttonId === 'post-apha') {
+        params = { postApha: 'true' };
+      } else if (buttonId === 'all') {
+        params = { filter: 'all-apha' };
+      } else if (aphaDay) {
+        params = { apha: aphaDay };
+      }
+
+      $('#loading-indicator').removeClass('hidden');
+      const csrfToken = "{{ csrf_token }}";
+
+      $.ajax({
+        url: '/api/getAphaData/',
+        method: 'POST',
+        data: {
+          csrfmiddlewaretoken: csrfToken,
+          ...params,
+        },
+        dataType: 'json',
+        success: function (response) {
+          if (response) {
+            console.log(response)
+            clearGraphs();
+            plotFollowersCountAnalysis(response.followers_count_analysis ?? null);
+            plotArticleAnalysis(response.articles_analysis ?? null);
+            plot_avsp_Analysis(response.actual_projected_followers_analysis ?? null);
+            plotFollowersComparison2024(response.followers_comparison_2024_2025 ?? null);
+            plotDODFollowersComparison2024(response.dod_followers_comparison_2024_2025 ?? null);
+            cummulativeFollowersChange(response.cumulative_followers_change ?? null);
+            updatingTableWithData(response.core_followers['data'] ?? null, response.core_followers['commentary'] ?? null);
+
+            const postInsights = response.post_insights_and_hashtags ?? {};
+
+            // Render post tables
+            renderPostsTable(postInsights['fb_results']?.['top_posts'] ?? null, "fb_post_table",postInsights['fb_results']?.['commentary'] ?? null ,"fb-post-comm");
+            renderPostsTable(postInsights['insta_results']?.['top_posts'] ?? null, "insta_post_table",postInsights['insta_results']?.['commentary'] ?? null ,"insta-post-comm");
+            renderPostsTable(postInsights['yt_results']?.['top_posts'] ?? null, "yt_post_table",postInsights['yt_results']?.['commentary'] ?? null ,"yt-post-comm");
+            articlesTable(response.articles_analysis_table ?? null);
+            // Render hashtags tables
+            hashtagsTable(postInsights['hashtag_results']?.['fb'] ?? null, "fb-hashtag_table","fb-hashtag-comm");
+            hashtagsTable(postInsights['hashtag_results']?.['insta'] ?? null, "insta-hashtag_table","insta-hashtag-comm");
+            const headerText = document.getElementById('selected-date');
+            if (aphaDay === 'pre-apha') {
+              headerText.innerHTML = "Pre-Apha";
+            } else if (aphaDay === 'post-apha') {
+              headerText.innerHTML = "Post-Apha";
+            } else {
+              headerText.innerHTML = `Apha Day ${aphaDay}`;
+            }
+            console.log("[DEBUG] Header Text:", headerText.innerHTML);
+
+          } else {
+            console.warn('No data available in the API response.');
+          }
+
+        },
+        error: function (xhr, status, error) {
+          console.error('Error fetching data:', error);
+          alert('Failed to fetch data. Please try again.');
+        },
+        complete: function () {
+          $('#loading-indicator').addClass('hidden');
+        },
+      });
+    });
+  });
+</script>
+  

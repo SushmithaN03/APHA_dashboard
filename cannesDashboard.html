@@ -1,0 +1,478 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APHA 2025 Dashboard</title>
+    
+    <link rel="icon" href="{% static '72dragons-small.png' %}" type="image/x-icon">
+    
+
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+	  {% include 'registration/libraries.html' %}
+    {% include 'registration/MainPageCSS.html' %}
+    {% include 'registration/AphaDashboard/cannesCSS.html' %}
+    
+    {% include 'registration/Miniplayer.html' %}
+</head>
+<body>
+  <!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  {% include 'registration/header.html' %}
+  <!-- Body container START -->
+  <div class="body-container">
+    <div id="loading-indicator" class="hidden fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
+      <div class="loader"></div>
+      <p class="text-white mt-4 text-lg font-semibold">Loading...</p>
+    </div>
+    <div class="header-div">
+      <h1>72 Dragons APHA 2025 Dashboard for <span id="selected-date"></span></h1>
+    </div>
+    <div class="filter-tab">
+      <div class="filter-container-1">
+        <!-- Scrollable Filter Buttons -->
+        <div class="filter-buttons">
+          <button class="filter-btn w-full sm:w-32 md:w-40 lg:w-auto" id="pre-apha" data-day="pre-apha">Pre APHA 2025</button>
+          <button class="arrow-btn" id="arrow-left">←</button>
+          <div class="scroll-container-wrapper">
+            <div class="scroll-container">
+              <div class="days">
+                <!-- Days with tooltips -->
+                <button class="day-btn" data-tooltip="02 Nov 2025" data-day="1">APHA Day 1</button>
+                <button class="day-btn" data-tooltip="03 Nov 2025" data-day="2">APHA Day 2</button>
+                <button class="day-btn" data-tooltip="04 Nov 2025" data-day="3">APHA Day 3</button>
+                <button class="day-btn" data-tooltip="05 Nov 2025" data-day="4">APHA Day 4</button>
+              </div>
+            </div>
+          </div>
+          <button class="arrow-btn " id="arrow-right">→</button>
+          <button class="filter-btn w-full sm:w-32 md:w-40 lg:w-auto" id="post-apha" data-day="post-apha">Post APHA 2025</button>
+          <!-- <button class="filter-btn w-full sm:w-32 md:w-40 lg:w-auto" id="all">All of Apha</button> -->
+        </div>
+      </div>
+      <!-- <div class="filter-container-2 flex-wrap">
+        <div class="date-filter">
+          <label for="date-filter">Select Date:</label>
+          <input type="date" id="date-filter">
+        </div>
+        <div>
+          <button class="filter-btn w-full sm:w-32 md:w-40 lg:w-auto" onclick="document.getElementById('core-followers-records').scrollIntoView({ behavior: 'smooth', block: 'start' })">
+            APHA 2025 Core Followers Records
+          </button>
+        </div>
+      </div> -->
+    </div>
+    <section style="width: 100%; margin: 0 auto;" class="text-white mt-20 mb-40 rounded-lg" id="apha-dashboard">
+      <!-- Insights Section -->
+      <div class="grid grid-cols-1 md:grid-cols-3 mt-10 text-center" style="gap: 0.75rem; padding: 0px 0.5rem;">
+        <!-- Facebook Insights -->
+        <div class="bg-dragon text-white rounded-lg shadow-lg" style="padding: 0.5rem ;">
+          <div class="flex items-center flex-wrap justify-center bg-72red rounded-lg mb-4 p-4 sm:p-2">
+            <!-- Facebook Icon -->
+            <img src="/static/icons/facebook-icon.svg" alt="Facebook" class="w-8 h-8 md:mr-5 lg:mr-5 sm:mr-0 ">
+            <!-- Heading -->
+            <h2 class="text-lg font-bold justify-center align-center sm:text-md sm:mt-2 md:mt-5 lg:mt-6">
+              72 Dragons Facebook Insights
+            </h2>
+          </div>
+          <div class="mb-6 text-center bg-black p-4 rounded-lg">
+            <p class="text-sm">Live Followers Now </p>
+            <h3 class="text-2xl font-bold" id="fb-current-followers-count"></h3>
+          </div>
+          <!-- Subsections -->
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Followers Count Analysis</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="fb-flw-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-flw-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Followers Comparison With APHA 2024</h3>
+            <div class="h-64 bg-black rounded-lg mb-4">
+              <div id="fb-cmp-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-cmp-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Actual v/s Projected Followers Analysis</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="fb-avsp-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-avsp-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Follower Growth Comparison: Day on Day (2024 vs 2025)</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="fb-fgc-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-fgc-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Cumulative Followers Change</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="fb-cfc-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-cfc-comm" class="block"></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Posts Reach & Impressions Insights</h3>
+            <div id="facebook-reach-impressions" class="insights-container h-64 bg-black rounded-lg overflow-x-auto overflow-y-auto mb-4">
+              <table id="fb_post_table" class="min-w-full insights-table overflow-auto">
+                <thead>
+                </thead>
+                <tbody id="fb_post_table_tbody"></tbody>
+              </table>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-post-comm" class="block"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Instagram Insights -->
+        <div class="bg-dragon text-white rounded-lg shadow-lg" style="padding: 0.5rem ;">
+          <div class="flex items-center flex-wrap justify-center bg-72red rounded-lg mb-4 p-4 sm:p-2">
+            <!-- Instagram Icon -->
+            <img src="/static/icons/instagram-icon.svg" alt="Instagram" class="w-8 h-8 md:mr-5 lg:mr-5 sm:mr-0 ">
+            <!-- Heading -->
+            <h2 class="text-lg font-bold justify-center align-center sm:text-md sm:mt-2 md:mt-5 lg:mt-6">
+              72 Dragons Instagram Insights
+            </h2>
+          </div>
+          <div class="mb-6 text-center bg-black p-4 rounded-lg">
+            <p class="text-sm">Live Followers Now</p>
+            <h3 class="text-2xl font-bold" id="insta-current-followers-count"></h3>
+          </div>
+          <!-- Subsections for Instagram -->
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Followers Count Analysis</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="insta-flw-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-flw-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Followers Comparison With APHA 2024</h3>
+            <div class="h-64 bg-black rounded-lg mb-4">
+              <div id="insta-cmp-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-cmp-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Actual v/s Projected Followers Analysis</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="insta-avsp-chart" class="block">
+              </div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-avsp-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Follower Growth Comparison: Day on Day (2024 vs 2025)</h3>
+            <div class="h-64 bg-black rounded-lg mb-4">
+              <div id="insta-fgc-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-fgc-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Cumulative Followers Change</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="insta-cfc-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-cfc-comm" class="block"></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Posts Reach & Impressions Insights</h3>
+            <div id="instagram-reach-impressions" class="insights-container h-64 bg-black rounded-lg overflow-x-auto overflow-y-auto mb-4">
+              <table id="insta_post_table" class="min-w-full insights-table overflow-auto">
+                <thead>
+                </thead>
+                <tbody id="insta_post_table_tbody"></tbody>
+              </table>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-post-comm" class="block"></div>
+            </div>
+          </div>
+        </div>
+        <!-- YouTube Insights -->
+        <div class="bg-dragon text-white rounded-lg shadow-lg" style="padding: 0.5rem ;">
+          <div class="flex items-center flex-wrap justify-center bg-72red rounded-lg mb-4 p-4 sm:p-2">
+            <!-- YouTube Icon -->
+            <img src="/static/icons/youtube-icon.svg" alt="YouTube" class="w-8 h-8 md:mr-5 lg:mr-5 sm:mr-0 ">
+            <!-- Heading -->
+            <h2 class="text-lg font-bold justify-center align-center sm:text-md sm:mt-2 md:mt-5 lg:mt-6">
+              72 Dragons YouTube Insights
+            </h2>
+          </div>
+          <div class="mb-6 text-center bg-black p-4 rounded-lg">
+            <p class="text-sm">Live Subscribers Now</p>
+            <h3 class="text-2xl font-bold" id="yt-current-followers-count"></h3>
+          </div>
+          <!-- Subsections for YouTube -->
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Subscribers Count Analysis</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="yt-flw-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="yt-flw-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Subscribers Comparison With APHA 2024</h3>
+            <div class="h-64 bg-black rounded-lg mb-4">
+              <div id="yt-cmp-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="yt-cmp-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Actual v/s Projected Subscribers Analysis</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="yt-avsp-chart" class="block">
+                
+              </div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="yt-avsp-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Subscribers Growth Comparison: Day on Day (2024 vs 2025)</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="yt-fgc-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="yt-fgc-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Cumulative Subscribers Change</h3>
+            <div class="h-64 bg-black rounded-lg mb-4" >
+              <div id="yt-cfc-chart" class="block"></div>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="yt-cfc-comm" class="block"></div>
+            </div>
+          </div>
+          <div class="">
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Video Reach & Impressions Insights</h3>
+            <div id="youtube-reach-impressions" class="insights-container h-64 bg-black rounded-lg overflow-x-auto overflow-y-auto mb-4">
+              <table id="yt_post_table" class="min-w-full insights-table overflow-auto">
+                <thead>
+                </thead>
+                <tbody id="yt_post_table_tbody"></tbody>
+              </table>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="yt-post-comm" class="block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- apha Hashtag Analysis -->
+    <section style="width: 100%; margin: 0 auto;" class="text-white mt-30 mb-20 rounded-lg" id="apha-2025-hastag-insights">
+      <!-- hashtags Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 text-center" style="gap: 0.75rem; padding: 0px 0.5rem;">
+        <!-- Facebook hashtags -->
+        <div class="bg-dragon text-white rounded-lg shadow-lg p-4">
+          <!-- Subsections -->
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Facebook Hashtag Analysis</h3>
+            <div  class="insights-container bg-black rounded-lg overflow-x-auto overflow-y-auto w-full mb-2" style="max-height: 20rem;">
+              <table id="fb-hashtag_table" class="min-w-full insights-table overflow-auto">
+                <thead>
+                </thead>
+                <tbody id="fb-hashtag_table-body"></tbody>
+              </table>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="fb-hashtag-comm" class="block"></div>
+            </div>
+        </div>
+        <!-- Instagram hashtags -->
+        <div class="bg-dragon text-white rounded-lg shadow-lg p-4">
+          <!-- Subsections for Instagram -->
+            <h3 class="text-md font-semibold bg-72red px-3 py-2 rounded-lg">Instagram Hashtag Analysis</h3>
+            <div class="insights-container bg-black rounded-lg overflow-x-auto overflow-y-auto w-full mb-2" style="max-height: 20rem;">
+              <table id="insta-hashtag_table" class="min-w-full insights-table overflow-auto" >
+                <thead>
+                </thead>
+                <tbody id="insta-hashtag_table-body"></tbody>
+              </table>
+            </div>
+            <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+              <div id="insta-hashtag-comm" class="block"></div>
+            </div>
+        </div>
+      </div>
+    </section>
+    <!-- apha Article Section -->
+    <section class="bg-dragon text-white rounded-lg" style="width: 99%; box-sizing: border-box;" id="apha-2025-article-analysis">
+      <div class="p-4">
+        <!-- Section Header -->
+        <div class="text-center text-white bg-72red px-3 py-2 rounded-lg mb-2">
+          <h2 class="text-2xl font-bold">Article Analysis</h2>
+        </div>
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2" style="gap: 0.75rem;">
+          <!-- Graph Section -->
+          <section 
+            class="bg-black shadow-md rounded-lg p-6">
+            <header class="mb-4 text-center">
+              <h3 class="text-lg font-semibold text-dragonfont">Articles Views Graph</h3>
+            </header>
+            <div class="rounded-lg mb-2" style="max-height: 20rem;">
+              <!-- Placeholder for Graph -->
+              <div id="article-chart" class="h-64"></div>
+            </div>
+            <div class="h-fit p-4 text-white bg-72red rounded-lg">
+              <div id="article-comm" class="block"></div>
+            </div>
+          </section>
+      
+          <!-- Table Section -->
+          <section class="bg-black shadow-md rounded-lg p-6">
+            <header class="mb-4 text-center">
+              <h3 class="text-lg font-semibold text-dragonfont">Articles and Details</h3>
+            </header>
+            <div class="insights-container h-64 bg-black overflow-x-auto overflow-y-auto rounded-lg mb-2"  style="max-height: 20rem;">
+              <table id="articles-table" class="h-64 min-w-full insights-table overflow-auto">
+                <thead>
+                  <tr>
+                    <th>No Data Available</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="h-fit p-4 text-white bg-72red rounded-lg" >
+              <div id="article-table-comm" class="block"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <!-- Section for Recording and Viewing Core Followers' Details -->
+    <section class="bg-dragon text-black rounded-lg mb-20" style="width: 99%;" id="core-followers-records">
+      <div class="p-4">
+        <!-- Header -->
+        <div class="text-center text-white bg-72red px-3 py-2 rounded-lg mb-2">
+          <h2 class="text-2xl font-bold">APHA 2025 Core Followers Records</h2>
+        </div>
+        <!-- Table to Display Followers Details -->
+        <div class="core-follower-container bg-black rounded-lg shadow-lg overflow-x-auto mb-4">
+          <table class="tf-table-pagination min-w-full bg-transparent border-collapse border border-gray-200" id="apha-followers-records">
+            <thead>
+              <tr class="bg-transparent">
+              </tr>
+            </thead>
+            <tbody class="bg-transparent">
+            </tbody>
+          </table>
+        </div>
+        <div class="h-fit p-4 text-dragon bg-black rounded-lg" >
+          <div id="apha-followers-records-comm" class="block"></div>
+        </div>
+      </div>
+    </section>
+    <button id="scrollToTopBtn" class="scroll-to-top-btn" onclick="scrollToTop()">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+      <!-- Modal Container -->
+      <div id="graph-modal" class="fixed inset-0 hidden items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-md">
+        <!-- Modal Content -->
+        <div id="modal-content" class="relative w-4/5 h-4/5 bg-dragon rounded-lg p-4">
+          <!-- Close Button -->
+          <button id="close-modal" class="text-black text-3xl font-bold z-50 cursor-pointer	" style="position: absolute; top: 10px; right: 10px;">
+            &times;
+          </button>
+          <!-- Graph Container -->
+          <div id="expanded-graph" class="w-full h-full"></div>
+        </div>
+      </div>
+      <!--Table Modal Container -->
+      <div id="table-modal" class="fixed inset-0 hidden items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-md cursor-pointer	">
+        <!-- Modal Content -->
+        <div id="table-modal-content" class="relative bg-black rounded-lg p-4" 
+          style="
+              width: 80%;
+              top: 10%;
+              left: 10%;
+              height: 80%;
+              overflow: auto;
+              border: 1px solid #A8944D;
+          ">
+          <!-- Close Button -->
+          <button id="table-close-modal" class="text-black text-3xl font-bold z-50 cursor-pointer	" style="position: absolute; top: 10px; right: 10px;">
+            &times;
+          </button>
+          <!-- Table Container -->
+          <div id="expanded-table" class="overflow-hidden" style="margin-top: 50px;"></div>
+        </div>
+      </div>
+  </div>
+  <!-- Body Container END -->
+    <script>
+      const leftArrow = document.getElementById("arrow-left");
+      const rightArrow = document.getElementById("arrow-right");
+      const scrollContainer = document.querySelector(".scroll-container-wrapper");
+      leftArrow.addEventListener("click", (e) => {
+        e.preventDefault();
+        scrollContainer.scrollBy({ left: -300, behavior: "smooth" });
+      });
+      rightArrow.addEventListener("click", (e) => {
+        e.preventDefault();
+        scrollContainer.scrollBy({ left: 300, behavior: "smooth" });
+      });
+      // const buttons = document.querySelectorAll(".day-btn, .filter-btn");
+      // buttons.forEach(button => {
+      //   button.addEventListener("click", () => {
+      //     buttons.forEach(btn => btn.classList.remove("active"));
+      //     button.classList.add("active");
+      //   });
+      // });
+    </script>
+    <script>
+      const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+      window.onscroll = function() {
+        if (document.body.scrollTop > 150 || document.documentElement.scrollTop > 150) {
+          scrollToTopBtn.style.display = 'block';
+        } else {
+          scrollToTopBtn.style.display = 'none';
+        }
+      };
+      function scrollToTop() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    </script>
+    {% include 'registration/AphaDashboard/cannesJS.html' %}
+  </body>
+</html>
